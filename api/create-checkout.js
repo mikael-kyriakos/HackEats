@@ -43,7 +43,6 @@ export default async function handler(request, response) {
   params.set("cancel_url", `${siteUrl}/?checkout=cancelled`);
   params.set("submit_type", "pay");
   params.set("payment_method_types[0]", "card");
-  params.set("shipping_address_collection[allowed_countries][0]", "GB");
   params.set("line_items[0][quantity]", String(quantity));
   params.set("line_items[0][price_data][currency]", currency);
   params.set("line_items[0][price_data][unit_amount]", String(unitAmount));
@@ -55,7 +54,6 @@ export default async function handler(request, response) {
   params.set("metadata[room]", metadata.room);
   params.set("metadata[customerName]", metadata.customerName);
   params.set("metadata[phone]", metadata.phone);
-  params.set("phone_number_collection[enabled]", "true");
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
