@@ -56,4 +56,4 @@ npx vercel dev
 - Product and order state is stored in Supabase, so all users see the same stock levels.
 - Stripe Checkout session creation and webhook verification use raw HTTP plus Node crypto, so no extra SDK is required.
 - Stock is reserved when checkout starts, marked paid on the Stripe webhook, and released if the checkout session expires.
-- Workers can use `/ops/` to see the next unfulfilled paid orders and mark them fulfilled.
+- Workers can use `/worker.html` to see the next unfulfilled paid orders and mark them fulfilled.
