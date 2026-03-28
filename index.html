@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HackEats</title>
+    <meta
+      name="description"
+      content="Order snacks and energy drinks during your hackathon without leaving your room."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero glass-card">
+        <div class="hero-copy">
+          <p class="eyebrow">Hackathon fuel, delivered</p>
+          <h1>HackEats</h1>
+          <p class="hero-text">
+            Order drinks, snacks, and quick boosts straight to your room. Stock
+            updates live on the page so teams can see what is running low.
+          </p>
+          <div class="hero-pills">
+            <span>Fast room delivery</span>
+            <span>Live stock levels</span>
+            <span>Optional phone contact</span>
+          </div>
+        </div>
+        <div class="hero-panel glass-panel">
+          <p class="panel-label">Tonight's status</p>
+          <div class="status-grid">
+            <div>
+              <strong id="available-count">0</strong>
+              <span>Items in stock</span>
+            </div>
+            <div>
+              <strong>2-7 min</strong>
+              <span>Typical delivery</span>
+            </div>
+          </div>
+          <p class="panel-note">
+            Payments can run through Stripe Checkout when API keys are added.
+          </p>
+        </div>
+      </header>
+
+      <main>
+        <section class="toolbar glass-card">
+          <div>
+            <p class="section-label">Storefront</p>
+            <h2>Late-night essentials</h2>
+          </div>
+          <label class="search-field">
+            <span>Search</span>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Energy drinks, crisps, fruit..."
+              aria-label="Search products"
+            />
+          </label>
+        </section>
+
+        <section id="product-grid" class="product-grid" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <dialog id="purchase-modal" class="purchase-modal">
+      <form id="purchase-form" class="modal-card">
+        <button type="button" class="close-button" id="close-modal" aria-label="Close">
+          ×
+        </button>
+        <div class="modal-head">
+          <img id="modal-image" src="" alt="" class="modal-image" />
+          <div>
+            <p class="section-label">Complete purchase</p>
+            <h3 id="modal-title"></h3>
+            <p id="modal-price" class="modal-price"></p>
+            <p id="modal-stock" class="modal-stock"></p>
+          </div>
+        </div>
+
+        <input type="hidden" id="product-id" name="productId" />
+
+        <label>
+          Quantity
+          <input id="quantity" name="quantity" type="number" min="1" value="1" required />
+        </label>
+
+        <label>
+          Room / location
+          <input
+            id="room"
+            name="room"
+            type="text"
+            maxlength="50"
+            placeholder="Room A12, main hall, upstairs..."
+            required
+          />
+        </label>
+
+        <label>
+          Team or contact name
+          <input
+            id="customer-name"
+            name="customerName"
+            type="text"
+            maxlength="60"
+            placeholder="Optional but useful"
+          />
+        </label>
+
+        <label>
+          Phone number
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            maxlength="30"
+            placeholder="Optional"
+          />
+        </label>
+
+        <div class="order-summary glass-panel">
+          <div>
+            <span>Total</span>
+            <strong id="order-total">£0.00</strong>
+          </div>
+          <p id="checkout-message">
+            Checkout opens in Stripe when configured. Otherwise the order is saved as a demo order.
+          </p>
+        </div>
+
+        <button id="submit-order" type="submit" class="primary-button">Pay & order</button>
+      </form>
+    </dialog>
+
+    <template id="product-card-template">
+      <article class="product-card glass-card">
+        <div class="card-art-wrap">
+          <img class="product-image" src="" alt="" />
+          <span class="stock-badge"></span>
+        </div>
+        <div class="card-copy">
+          <div class="card-topline">
+            <h3 class="product-name"></h3>
+            <span class="product-price"></span>
+          </div>
+          <p class="product-description"></p>
+          <div class="card-footer">
+            <span class="stock-text"></span>
+            <button class="buy-button" type="button">Buy</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

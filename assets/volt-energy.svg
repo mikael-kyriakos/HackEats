@@ -1,0 +1,9 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" rx="40" fill="#0D1B2A"/>
+  <circle cx="486" cy="95" r="100" fill="#1D3F55"/>
+  <circle cx="130" cy="350" r="140" fill="#143048"/>
+  <rect x="236" y="62" width="128" height="274" rx="32" fill="#57F0C0"/>
+  <rect x="252" y="82" width="96" height="234" rx="24" fill="#0F1728"/>
+  <path d="M307.288 125L274 213.312H300.704L287.48 278L326 194.688H299.296L307.288 125Z" fill="#57F0C0"/>
+  <text x="300" y="344" text-anchor="middle" fill="#EFF7FF" font-family="Arial, sans-serif" font-size="32" font-weight="700">Volt Energy</text>
+</svg>

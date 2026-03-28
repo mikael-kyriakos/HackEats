@@ -1,0 +1,10 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" rx="40" fill="#112235"/>
+  <circle cx="116" cy="294" r="126" fill="#1A3C52"/>
+  <circle cx="484" cy="72" r="94" fill="#24495C"/>
+  <rect x="128" y="158" width="344" height="102" rx="28" fill="#C88B4C"/>
+  <rect x="168" y="174" width="264" height="70" rx="20" fill="#F3D09A"/>
+  <path d="M205 188H396" stroke="#A56C34" stroke-width="12" stroke-linecap="round"/>
+  <path d="M205 223H357" stroke="#A56C34" stroke-width="12" stroke-linecap="round"/>
+  <text x="300" y="328" text-anchor="middle" fill="#EFF7FF" font-family="Arial, sans-serif" font-size="32" font-weight="700">Focus Bar</text>
+</svg>
