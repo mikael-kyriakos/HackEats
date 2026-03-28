@@ -114,3 +114,38 @@ export async function cancelPendingOrder(orderId) {
     }),
   });
 }
+
+export async function fetchWorkerOrders() {
+  const query =
+    "/rest/v1/orders?select=id,status,quantity,room,customer_name,phone,total_amount,created_at,paid_at,fulfilled_at,fulfilled_by,product:products(name)&status=in.(paid,fulfilled)&order=created_at.asc";
+  const rows = await supabaseFetch(query, {
+    headers: {
+      Prefer: "return=representation",
+    },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    status: row.status,
+    quantity: row.quantity,
+    room: row.room,
+    customerName: row.customer_name,
+    phone: row.phone,
+    totalAmount: row.total_amount,
+    createdAt: row.created_at,
+    paidAt: row.paid_at,
+    fulfilledAt: row.fulfilled_at,
+    fulfilledBy: row.fulfilled_by,
+    productName: row.product?.name || "Unknown product",
+  }));
+}
+
+export async function fulfillOrder({ orderId, fulfilledBy }) {
+  await supabaseFetch("/rest/v1/rpc/fulfill_order", {
+    method: "POST",
+    body: JSON.stringify({
+      p_order_id: orderId,
+      p_fulfilled_by: fulfilledBy || null,
+    }),
+  });
+}

@@ -16,8 +16,12 @@ HackEats is a lightweight hackathon snack-ordering app with:
 - `api/products.js` - Vercel serverless function that loads products from Supabase
 - `api/create-checkout.js` - reserves stock, creates the Stripe Checkout session, and stores a pending order
 - `api/stripe-webhook.js` - confirms paid orders and releases expired reservations
+- `api/orders.js` - worker queue endpoint for paid and fulfilled orders
+- `api/fulfill-order.js` - marks deliveries as fulfilled
+- `ops/` - worker dashboard for delivery runners
 - `supabase/schema.sql` - database tables and order/stock functions
 - `supabase/seed.sql` - starter products
+- `supabase/fulfillment.sql` - migration for delivery fulfillment tracking on an existing database
 
 ## Deploying
 
@@ -30,6 +34,7 @@ This project is ready for static hosting on Vercel.
    - `SITE_URL`
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
+   - `WORKER_ACCESS_CODE` (recommended)
 3. Deploy.
 
 ## Local preview
@@ -51,3 +56,4 @@ npx vercel dev
 - Product and order state is stored in Supabase, so all users see the same stock levels.
 - Stripe Checkout session creation and webhook verification use raw HTTP plus Node crypto, so no extra SDK is required.
 - Stock is reserved when checkout starts, marked paid on the Stripe webhook, and released if the checkout session expires.
+- Workers can use `/ops/` to see the next unfulfilled paid orders and mark them fulfilled.

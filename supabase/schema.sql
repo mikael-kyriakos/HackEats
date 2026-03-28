@@ -18,13 +18,15 @@ create table if not exists public.orders (
   room text not null,
   customer_name text,
   phone text,
-  status text not null check (status in ('pending', 'paid', 'cancelled')),
+  status text not null check (status in ('pending', 'paid', 'fulfilled', 'cancelled')),
   unit_amount integer not null check (unit_amount > 0),
   total_amount integer not null check (total_amount > 0),
   checkout_session_id text unique,
   stripe_payment_intent_id text,
   created_at timestamptz not null default timezone('utc', now()),
-  paid_at timestamptz
+  paid_at timestamptz,
+  fulfilled_at timestamptz,
+  fulfilled_by text
 );
 
 create or replace function public.create_pending_order(
@@ -154,6 +156,24 @@ begin
   update public.orders
   set status = 'cancelled'
   where id = p_order_id;
+end;
+$$;
+
+create or replace function public.fulfill_order(
+  p_order_id uuid,
+  p_fulfilled_by text default null
+)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update public.orders
+  set status = 'fulfilled',
+      fulfilled_at = timezone('utc', now()),
+      fulfilled_by = nullif(p_fulfilled_by, '')
+  where id = p_order_id
+    and status = 'paid';
 end;
 $$;
 
