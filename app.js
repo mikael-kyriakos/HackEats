@@ -1,56 +1,5 @@
-const products = [
-  {
-    id: "volt-energy",
-    name: "Volt Energy",
-    description: "Citrus energy drink for teams pushing through the midnight sprint.",
-    pricePence: 280,
-    stock: 14,
-    image: "./assets/volt-energy.svg",
-  },
-  {
-    id: "pixel-popcorn",
-    name: "Pixel Popcorn",
-    description: "Sweet and salty popcorn tub that is easy to share around a laptop.",
-    pricePence: 220,
-    stock: 11,
-    image: "./assets/pixel-popcorn.svg",
-  },
-  {
-    id: "debug-chips",
-    name: "Debug Chips",
-    description: "Sea salt crisps for fast snack refuelling between demos.",
-    pricePence: 175,
-    stock: 6,
-    image: "./assets/debug-chips.svg",
-  },
-  {
-    id: "focus-bar",
-    name: "Focus Bar",
-    description: "Oat and peanut protein bar for calmer, steadier energy.",
-    pricePence: 195,
-    stock: 9,
-    image: "./assets/focus-bar.svg",
-  },
-  {
-    id: "fruit-boost",
-    name: "Fruit Boost Cup",
-    description: "Fresh fruit cup when the team wants something lighter.",
-    pricePence: 250,
-    stock: 4,
-    image: "./assets/fruit-boost.svg",
-  },
-  {
-    id: "hydrate-water",
-    name: "Hydrate+ Water",
-    description: "Cold bottled water to offset the caffeine curve.",
-    pricePence: 150,
-    stock: 20,
-    image: "./assets/hydrate-water.svg",
-  },
-];
-
 const state = {
-  products: structuredClone(products),
+  products: [],
   selectedProductId: null,
 };
 
@@ -90,6 +39,23 @@ function getStockTone(stock) {
   return { label: `${stock} in stock`, className: "in-stock" };
 }
 
+function getSelectedProduct() {
+  return state.products.find((entry) => entry.id === state.selectedProductId) || null;
+}
+
+function updateStatusFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const checkoutState = params.get("checkout");
+
+  if (checkoutState === "success") {
+    checkoutMessage.textContent =
+      "Payment completed. Your order is now in the queue for delivery.";
+  } else if (checkoutState === "cancelled") {
+    checkoutMessage.textContent =
+      "Payment was cancelled. Your reserved stock will be released shortly if you do not retry.";
+  }
+}
+
 function renderProducts(filter = "") {
   const query = filter.trim().toLowerCase();
   const filteredProducts = state.products.filter((product) => {
@@ -100,6 +66,11 @@ function renderProducts(filter = "") {
   });
 
   productGrid.innerHTML = "";
+
+  if (filteredProducts.length === 0) {
+    productGrid.innerHTML =
+      '<article class="glass-card product-card"><p class="product-description">No products matched your search.</p></article>';
+  }
 
   filteredProducts.forEach((product, index) => {
     const stockTone = getStockTone(product.stock);
@@ -149,7 +120,7 @@ function openModal(productId) {
   quantityInput.max = String(product.stock);
   quantityInput.value = "1";
   checkoutMessage.textContent =
-    "Checkout opens in Stripe when configured. Otherwise the order is saved as a demo order.";
+    "You will be redirected to Stripe to complete payment. Stock is reserved when checkout starts.";
 
   updateOrderTotal();
   modal.showModal();
@@ -162,19 +133,55 @@ function closeModal() {
 }
 
 function updateOrderTotal() {
-  const product = state.products.find((entry) => entry.id === state.selectedProductId);
+  const product = getSelectedProduct();
   if (!product) {
     orderTotal.textContent = formatCurrency(0);
     return;
   }
 
-  const quantity = Number(quantityInput.value) || 1;
+  const quantity = Math.max(1, Number(quantityInput.value) || 1);
   orderTotal.textContent = formatCurrency(product.pricePence * quantity);
+}
+
+async function loadProducts() {
+  productGrid.innerHTML =
+    '<article class="glass-card product-card"><p class="product-description">Loading products...</p></article>';
+
+  try {
+    const response = await fetch("/api/products");
+    if (!response.ok) {
+      throw new Error("Unable to load products");
+    }
+
+    const data = await response.json();
+    state.products = Array.isArray(data.products) ? data.products : [];
+    renderProducts(searchInput.value);
+    updateStatusFromUrl();
+  } catch (error) {
+    productGrid.innerHTML =
+      '<article class="glass-card product-card"><p class="product-description">Products could not be loaded. Check the Supabase setup in Vercel and try again.</p></article>';
+    availableCount.textContent = "0";
+  }
+}
+
+async function refreshProducts() {
+  try {
+    const response = await fetch("/api/products");
+    if (!response.ok) {
+      return;
+    }
+
+    const data = await response.json();
+    state.products = Array.isArray(data.products) ? data.products : [];
+    renderProducts(searchInput.value);
+  } catch (error) {
+    // Keep the current UI if a background refresh fails.
+  }
 }
 
 async function handleCheckout(event) {
   event.preventDefault();
-  const product = state.products.find((entry) => entry.id === state.selectedProductId);
+  const product = getSelectedProduct();
   if (!product) {
     return;
   }
@@ -188,14 +195,16 @@ async function handleCheckout(event) {
   const formData = new FormData(purchaseForm);
   const payload = {
     productId: product.id,
-    productName: product.name,
     quantity,
     room: String(formData.get("room") || "").trim(),
     customerName: String(formData.get("customerName") || "").trim(),
     phone: String(formData.get("phone") || "").trim(),
-    unitAmount: product.pricePence,
-    currency: "gbp",
   };
+
+  if (!payload.room) {
+    checkoutMessage.textContent = "Please enter the room or location for delivery.";
+    return;
+  }
 
   submitOrder.disabled = true;
   submitOrder.textContent = "Processing...";
@@ -209,36 +218,23 @@ async function handleCheckout(event) {
       body: JSON.stringify(payload),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Checkout unavailable");
     }
 
-    throw new Error("Checkout unavailable");
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    throw new Error("Missing checkout URL");
   } catch (error) {
-    const orders = JSON.parse(localStorage.getItem("hackeats-demo-orders") || "[]");
-    orders.unshift({
-      ...payload,
-      totalAmount: payload.unitAmount * payload.quantity,
-      createdAt: new Date().toISOString(),
-      status: "demo-order",
-    });
-    localStorage.setItem("hackeats-demo-orders", JSON.stringify(orders));
-
-    product.stock -= quantity;
     checkoutMessage.textContent =
-      "Stripe is not configured yet, so this has been saved as a demo order in your browser.";
-    renderProducts(searchInput.value);
-
-    setTimeout(() => {
-      closeModal();
-    }, 900);
-  } finally {
+      error.message || "Checkout could not be started. Please try again.";
     submitOrder.disabled = false;
     submitOrder.textContent = "Pay & order";
+    await refreshProducts();
   }
 }
 
@@ -256,4 +252,4 @@ modal.addEventListener("click", (event) => {
 });
 purchaseForm.addEventListener("submit", handleCheckout);
 
-renderProducts();
+loadProducts();
